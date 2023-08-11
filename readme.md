@@ -7,7 +7,7 @@ Typed Components is a lightweight library designed to build structures, componen
 
 From this code:
 
-```cs
+```csharp
 static void Main(string[] args)
 {
     var createHello = (string message) => Element.Html(_ =>
@@ -47,7 +47,7 @@ In a blink of an eye.
 
 The basic principle of this lib is to interpolate the strings and build them with `IRenderable` elements, which are objects capable of rendering other objects. This library also supports writing CSS in the same elegant and fluent way:
 
-```cs
+```csharp
 static void Main(string[] args)
 {
     var css = Stylesheet.Create(_ =>

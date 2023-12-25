@@ -1,12 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TypedComponents;
-
-public interface IRenderable
+﻿namespace TinyComponents
 {
-    public string? Render();
+    /// <summary>
+    /// Represents an object that can be rendered into HTML.
+    /// </summary>
+    public interface IRenderable
+    {
+        /// <summary>
+        /// Renders the current instance into an string.
+        /// </summary>
+        /// <returns>A string representing the content of this instance, or null if not renderable.</returns>
+        public string? Render();
+    }
 }

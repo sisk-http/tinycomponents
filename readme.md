@@ -24,16 +24,24 @@ Should output:
 
 The library is extremely simple to use, covering just a few very simple functions. This file will document all your resources here.
 
-To correctly use this library, it is also interesting to note what it is and what it is not. TinyComponents **is** an library to help rendering HTML with an fluent and elegant syntax, which also support basic templating and components, but **it's not** an complete frontend framework with styles and scripts.
+To correctly use this library, it is also interesting to note what it is and what it is not. TinyComponents **is** an library to help rendering XML/HTML with an fluent and elegant syntax, which also support basic templating and components, but **it's not** an complete frontend framework with styles and scripts.
+
+## Installing
+
+Install the **experimental version** of TinyComponents with at [Nuget](https://www.nuget.org/packages/TinyComponents/0.2.0):
+
+```
+dotnet add package TinyComponents
+```
 
 ## The IRenderable
 
 Every renderable element inherits from `IRenderable`, which calls the render method and creates a string. This interface is not limited to HTML elements.
 
 ```csharp
-record MyRenderable(string Name) : IRenderable
+class MyRenderable(string Name) : IRenderable
 {
-    public string? Render()
+    public string Render()
     {
         return $"Hello, {Name}";
     }
@@ -52,7 +60,6 @@ var myDiv = new HtmlElement("div")
     .WithId("my-button")
     .WithAttribute("onclick", "foo()")
     .WithName("submit-button")
-    .WithStyle(new { color = "red", backgroundColor = "white" })
     .WithContent("Click me!");
 
 Console.WriteLine(myDiv.Render());
@@ -64,8 +71,7 @@ Shoud output:
 <div onclick="foo()"
     id="my-button"
     name="submit-button"
-    class="form-control bg-primary"
-    style="color:red;background-color:white;">
+    class="form-control bg-primary">
 
     Click me!
 </div>
@@ -82,7 +88,6 @@ Explanation of some of the used fluent methods:
 - `WithAttribute` specifies one attribute and their value. If the attribute value is an boolean, it will add as `name="name"` when the value is `true`, but if the value is `false` or `null`, it will not add the attribute value.
 - `WithAttributes` specifies an anonymous object which will cast every property name casing from `camelCase` to `kebab-case`.
 - `WithName` specifies the HTML element name attribute.
-- `WithStyle` implies for the `style` tag styling, with same naming rules as `WithAttributes`.
 - `WithContent` expects one of these arguments: an string, an `IRenderable` object or an action of self tag, example:
 
 ```csharp
@@ -218,7 +223,7 @@ Console.WriteLine(page.Render());
 </html>
 ```
 
-### Reusing an page template using abstract
+### Reusing an page template using abstracts
 
 ```csharp
 abstract class MyHtmlTemplate : HtmlElement

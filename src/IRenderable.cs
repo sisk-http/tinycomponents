@@ -8,7 +8,7 @@
         /// <summary>
         /// Renders the current instance into an string.
         /// </summary>
-        /// <returns>A string representing the content of this instance, or null if not renderable.</returns>
-        public string? Render();
+        /// <returns>A string representing the content of this instance.</returns>
+        public string Render();
     }
 }

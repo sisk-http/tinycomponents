@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Linq;
+using System.Reflection;
 using System.Text;
-using System.Xml.Linq;
 
 namespace TinyComponents
 {
@@ -37,7 +36,7 @@ namespace TinyComponents
         }
 
         /// <summary>
-        /// Specifies the HTML element ID of this <see cref="HtmlElement"/>.
+        /// Specifies the HTML element class list of this <see cref="HtmlElement"/>.
         /// </summary>
         /// <typeparam name="THtmlElement">The object type which implements <see cref="HtmlElement"/>.</typeparam>
         /// <param name="node">The current <see cref="HtmlElement"/>.</param>
@@ -45,8 +44,22 @@ namespace TinyComponents
         /// <returns>The self <see cref="HtmlElement"/> object for fluent chaining.</returns>
         public static THtmlElement WithClass<THtmlElement>(this THtmlElement node, params string[] classNames) where THtmlElement : HtmlElement
         {
-            foreach(string className in classNames)
+            foreach (string className in classNames)
                 node.ClassList.Add(className);
+            return node;
+        }
+
+        /// <summary>
+        /// Adds css styles through the style attribute on this <see cref="HtmlElement"/>.
+        /// </summary>
+        /// <typeparam name="THtmlElement">The object type which implements <see cref="HtmlElement"/>.</typeparam>
+        /// <param name="node">The current <see cref="HtmlElement"/>.</param>
+        /// <param name="styleObject">The object which contains CSS properties and values to style the component.</param>
+        /// <returns>The self <see cref="HtmlElement"/> object for fluent chaining.</returns>
+        public static THtmlElement WithStyle<THtmlElement>(this THtmlElement node, object styleObject) where THtmlElement : HtmlElement
+        {
+            
+
             return node;
         }
     }

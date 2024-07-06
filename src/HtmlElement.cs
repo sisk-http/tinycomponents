@@ -2,11 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Xml.Linq;
 
 namespace TinyComponents
 {
@@ -24,7 +23,7 @@ namespace TinyComponents
             string[] formattedData = new string[htmlString.ArgumentCount];
             for (int i = 0; i < formattedData.Length; i++)
             {
-                formattedData[i] = RenderableText.EscapeXmlLikeLiteral(htmlString.GetArgument(i)?.ToString());
+                formattedData[i] = RenderableText.SafeRenderSubject(htmlString.GetArgument(i)?.ToString());
             }
             return string.Format(htmlString.Format, formattedData);
         }
@@ -45,9 +44,9 @@ namespace TinyComponents
         public Dictionary<string, object?> Attributes { get; set; } = new Dictionary<string, object?>();
 
         /// <summary>
-        /// Gets or sets the collection of child elements (IRenderable) within this element.
+        /// Gets or sets the collection of child elements within this element.
         /// </summary>
-        public ICollection<IRenderable> Children { get; set; } = new List<IRenderable>();
+        public ICollection<object?> Children { get; set; } = new List<object?>();
 
         /// <summary>
         /// Gets or sets the tab index of the HTML element.
@@ -78,6 +77,11 @@ namespace TinyComponents
         public ICollection<string> ClassList { get; set; } = new List<string>();
 
         /// <summary>
+        /// Gets or sets the CSS style object used to render the style attribute.
+        /// </summary>
+        public object? Style { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="HtmlElement"/> class with no container HTML element.
         /// </summary>
         public HtmlElement()
@@ -91,17 +95,28 @@ namespace TinyComponents
         /// <param name="tagName">The name of the tag to be used for the HTML element. The tag name will be converted to lowercase.</param>
         public HtmlElement(string tagName)
         {
-            TagName = tagName.ToLower();
+            TagName = tagName;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HtmlElement"/> class with the specified tag name.
+        /// Initializes a new instance of the <see cref="HtmlElement"/> class with the specified tag name and content.
         /// </summary>
         /// <param name="tagName">The name of the tag to be used for the HTML element. The tag name will be converted to lowercase.</param>
         /// <param name="content">Optional parameter that defines content for the creating HTML tag.</param>
-        public HtmlElement(string tagName, IRenderable content)
+        public HtmlElement(string tagName, object? content)
         {
-            TagName = tagName.ToLower();
+            TagName = tagName;
+            this.WithContent(content);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HtmlElement"/> class with the specified tag name and content.
+        /// </summary>
+        /// <param name="tagName">The name of the tag to be used for the HTML element. The tag name will be converted to lowercase.</param>
+        /// <param name="content">Optional parameter that defines content for the creating HTML tag.</param>
+        public HtmlElement(string tagName, string content)
+        {
+            TagName = tagName;
             this.WithContent(content);
         }
 
@@ -112,42 +127,15 @@ namespace TinyComponents
         /// <param name="content">Optional parameter that defines content for the creating HTML tag.</param>
         public HtmlElement(string tagName, Action<HtmlElement> content)
         {
-            TagName = tagName.ToLower();
-            this.WithContent(content);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="HtmlElement"/> class with the specified tag name.
-        /// </summary>
-        /// <param name="tagName">The name of the tag to be used for the HTML element. The tag name will be converted to lowercase.</param>
-        /// <param name="content">Optional parameter that defines content for the creating HTML tag.</param>
-        public HtmlElement(string tagName, string? content)
-        {
-            TagName = tagName.ToLower();
+            TagName = tagName;
             this.WithContent(content);
         }
 
         /// <inheritdoc/>
-        public static HtmlElement operator +(HtmlElement a, HtmlElement? b)
+        public static HtmlElement operator +(HtmlElement a, object? b)
         {
             if (b == null) return a;
             a.Children.Add(b);
-            return a;
-        }
-
-        /// <inheritdoc/>
-        public static HtmlElement operator +(HtmlElement a, IRenderable? b)
-        {
-            if (b == null) return a;
-            a.Children.Add(b);
-            return a;
-        }
-
-        /// <inheritdoc/>
-        public static HtmlElement operator +(HtmlElement a, string? b)
-        {
-            if (b == null) return a;
-            a.Children.Add(new RenderableText(b));
             return a;
         }
 
@@ -164,6 +152,11 @@ namespace TinyComponents
             if (Name is string name) attributes["name"] = name;
             if (ClassList.Count > 0) attributes["class"] = string.Join(' ', ClassList);
 
+            if (GetStyleValue() is string styleValue)
+            {
+                attributes["style"] = styleValue;
+            }
+
             return attributes;
         }
 
@@ -171,29 +164,36 @@ namespace TinyComponents
         /// Renders the HTML element into string.
         /// </summary>
         /// <returns>The rendered HTML string.</returns>
-        public virtual string Render()
+        public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
 
             if (!string.IsNullOrEmpty(TagName))
             {
                 sb.Append('<');
-                sb.Append(TagName);
+                sb.Append(TagName.ToLower());
 
                 var attr = GetAttributes();
                 if (attr.Count > 0)
                 {
-                    sb.Append(' ');
                     foreach (KeyValuePair<string, object?> at in attr)
                     {
+                        if (string.IsNullOrEmpty(at.Key))
+                            continue;
+
+                        sb.Append(' ');
                         sb.Append(at.Key);
 
-                        string? value = at.Value?.ToString();
-                        if (!string.IsNullOrEmpty(value))
+                        string value = RenderableText.SafeRenderSubject(at.Value);
+                        if (string.Compare(value, at.Key) == 0)
+                        {
+                            continue;
+                        }
+                        else
                         {
                             sb.Append('=');
                             sb.Append('"');
-                            sb.Append(RenderableText.EscapeXmlLikeLiteral(value));
+                            sb.Append(value);
                             sb.Append('"');
                         }
                     }
@@ -207,10 +207,9 @@ namespace TinyComponents
                 return sb.ToString();
             }
 
-            foreach (IRenderable children in Children)
+            foreach (object? children in Children)
             {
-                string? result = children.Render();
-                sb.Append(result);
+                sb.Append(children?.ToString());
             }
 
             sb.Append("</");
@@ -219,6 +218,37 @@ namespace TinyComponents
 
             return sb.ToString();
         }
-    }
 
+        private string? GetStyleValue()
+        {
+            if (Style is null)
+                return null;
+
+            PropertyInfo[] properties = Style.GetType()
+                .GetProperties(BindingFlags.Instance | BindingFlags.Public);
+
+            StringBuilder stylesSb = new StringBuilder();
+            for (int i = 0; i < properties.Length; i++)
+            {
+                PropertyInfo propertyInfo = properties[i];
+                object? value = propertyInfo.GetValue(Style);
+                string? valueStr = value?.ToString();
+
+                if (string.IsNullOrWhiteSpace(valueStr))
+                {
+                    continue;
+                }
+                else
+                {
+                    string name = string.Concat(
+                        propertyInfo.Name
+                            .Select((x, i) => i > 0 && char.IsUpper(x) ? "-" + char.ToLower(x) : char.ToLower(x).ToString())
+                    );
+                    stylesSb.Append($"{name}:{valueStr};");
+                }
+            }
+
+            return stylesSb.ToString(); ;
+        }
+    }
 }

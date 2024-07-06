@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Text;
 
 namespace TinyComponents
@@ -26,49 +25,49 @@ namespace TinyComponents
         public Dictionary<string, object?> Attributes { get; set; } = new Dictionary<string, object?>();
 
         /// <summary>
-        /// Gets or sets the collection of child elements (<see cref="IRenderable"/>) within this node.
+        /// Gets or sets the collection of child elements within this node.
         /// </summary>
-        public ICollection<IRenderable> Children { get; set; } = new List<IRenderable>();
+        public ICollection<object?> Children { get; set; } = new List<object?>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="XmlNode"/> class with the specified tag name.
         /// </summary>
-        /// <param name="tagName">The name of the tag to be used for the HTML element. The tag name will be converted to lowercase.</param>
+        /// <param name="tagName">The name of the tag to be used for the XML element. The tag name will be converted to lowercase.</param>
         public XmlNode(string tagName)
         {
-            TagName = tagName.ToLower();
+            TagName = tagName;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="XmlNode"/> class with the specified tag name.
+        /// Initializes a new instance of the <see cref="XmlNode"/> class with the specified tag name and content.
         /// </summary>
-        /// <param name="tagName">The name of the tag to be used for the HTML element. The tag name will be converted to lowercase.</param>
-        /// <param name="content">Optional parameter that defines content for the creating HTML tag.</param>
-        public XmlNode(string tagName, IRenderable content)
-        {
-            TagName = tagName.ToLower();
-            this.WithContent(content);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="XmlNode"/> class with the specified tag name.
-        /// </summary>
-        /// <param name="tagName">The name of the tag to be used for the HTML element. The tag name will be converted to lowercase.</param>
-        /// <param name="content">Optional parameter that defines content for the creating HTML tag.</param>
-        public XmlNode(string tagName, Action<XmlNode> content)
-        {
-            TagName = tagName.ToLower();
-            this.WithContent(content);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="XmlNode"/> class with the specified tag name.
-        /// </summary>
-        /// <param name="tagName">The name of the tag to be used for the HTML element. The tag name will be converted to lowercase.</param>
-        /// <param name="content">Optional parameter that defines content for the creating HTML tag.</param>
+        /// <param name="tagName">The name of the tag to be used for the XML element. The tag name will be converted to lowercase.</param>
+        /// <param name="content">Optional parameter that defines content for the creating XML tag.</param>
         public XmlNode(string tagName, object? content)
         {
-            TagName = tagName.ToLower();
+            TagName = tagName;
+            this.WithContent(content);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="XmlNode"/> class with the specified tag name and content.
+        /// </summary>
+        /// <param name="tagName">The name of the tag to be used for the XML element. The tag name will be converted to lowercase.</param>
+        /// <param name="content">Optional parameter that defines content for the creating XML tag.</param>
+        public XmlNode(string tagName, string content)
+        {
+            TagName = tagName;
+            this.WithContent(content);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="XmlNode"/> class with the specified tag name.
+        /// </summary>
+        /// <param name="tagName">The name of the tag to be used for the XML element. The tag name will be converted to lowercase.</param>
+        /// <param name="content">Optional parameter that defines content for the creating XML tag.</param>
+        public XmlNode(string tagName, Action<XmlNode> content)
+        {
+            TagName = tagName;
             this.WithContent(content);
         }
 
@@ -81,7 +80,7 @@ namespace TinyComponents
         }
 
         /// <inheritdoc/>
-        public static XmlNode operator +(XmlNode a, IRenderable? b)
+        public static XmlNode operator +(XmlNode a, object? b)
         {
             if (b == null) return a;
             a.Children.Add(b);
@@ -99,7 +98,7 @@ namespace TinyComponents
         /// <summary>
         /// Renders this <see cref="XmlNode"/> into it's XML string representation.
         /// </summary>
-        public string Render()
+        public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
 
@@ -110,19 +109,19 @@ namespace TinyComponents
 
                 if (Attributes.Count > 0)
                 {
-                    sb.Append(' ');
                     foreach (KeyValuePair<string, object?> at in Attributes)
                     {
+                        if (string.IsNullOrEmpty(at.Key))
+                            continue;
+
+                        sb.Append(' ');
                         sb.Append(at.Key);
 
-                        string? value = at.Value?.ToString();
-                        if (!string.IsNullOrEmpty(value))
-                        {
-                            sb.Append('=');
-                            sb.Append('"');
-                            sb.Append(RenderableText.EscapeXmlLikeLiteral(value));
-                            sb.Append('"');
-                        }
+                        string value = RenderableText.SafeRenderSubject(at.Value);
+                        sb.Append('=');
+                        sb.Append('"');
+                        sb.Append(value);
+                        sb.Append('"');
                     }
                 }
 
@@ -138,10 +137,9 @@ namespace TinyComponents
                 return sb.ToString();
             }
 
-            foreach (IRenderable children in Children)
+            foreach (object? children in Children)
             {
-                string? result = children.Render();
-                sb.Append(result);
+                sb.Append(children?.ToString());
             }
 
             sb.Append("</");

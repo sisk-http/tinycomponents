@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TinyComponents
 {
@@ -66,11 +64,11 @@ namespace TinyComponents
         /// </summary>
         /// <typeparam name="TXmlNode">The object type which implements <see cref="IXmlNode"/>.</typeparam>
         /// <param name="node">The current <see cref="IXmlNode"/>.</param>
-        /// <param name="children">The children <see cref="IRenderable"/> object.</param>
+        /// <param name="contents">The children object.</param>
         /// <returns>The self <see cref="IXmlNode"/> object for fluent chaining.</returns>
-        public static TXmlNode WithContent<TXmlNode>(this TXmlNode node, IRenderable children) where TXmlNode : IXmlNode
+        public static TXmlNode WithContent<TXmlNode>(this TXmlNode node, object? contents) where TXmlNode : IXmlNode
         {
-            node.Children.Add(children);
+            node.Children.Add(contents);
             return node;
         }
 
@@ -81,20 +79,9 @@ namespace TinyComponents
         /// <param name="node">The current <see cref="IXmlNode"/>.</param>
         /// <param name="contents">The children object.</param>
         /// <returns>The self <see cref="IXmlNode"/> object for fluent chaining.</returns>
-        public static TXmlNode WithContent<TXmlNode>(this TXmlNode node, object? contents) where TXmlNode : IXmlNode
+        public static TXmlNode WithContent<TXmlNode>(this TXmlNode node, string contents) where TXmlNode : IXmlNode
         {
-            if (contents is null)
-            {
-                ;
-            }
-            else if (contents is IRenderable renderable)
-            {
-                node.Children.Add(renderable);
-            }
-            else
-            {
-                node.Children.Add(new RenderableText(contents.ToString()));
-            }
+            node.Children.Add(new RenderableText(contents));
             return node;
         }
     }

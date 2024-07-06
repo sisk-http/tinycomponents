@@ -1,8 +1,8 @@
 # TinyComponents
 
-Welcome to TinyComponents! This tiny library will help you create HTML components with a readable language that interacts with your code.
+Welcome to TinyComponents! This tiny library will help you create XML and HTML components with a readable language that interacts with your code.
 
-This library is aimed at rendering HTML components securely, assigning attributes, classes, IDs and more to your elements securely, building your HTML in an elegant and formal way.
+This library is aimed at rendering HTML/XML components securely, assigning attributes, classes, IDs and more to your elements, building your HTML in an elegant and formal syntax.
 
 ```csharp
 HtmlElement MyComponent(string name)
@@ -11,9 +11,8 @@ HtmlElement MyComponent(string name)
         .WithContent($"Hey! Im {name}.");
 }
 
-string? html = MyComponent("Dave").Render();
-
-Console.WriteLine(html);
+var element = MyComponent("Dave");
+Console.WriteLine(element);
 ```
 
 Should output:
@@ -24,261 +23,203 @@ Should output:
 
 The library is extremely simple to use, covering just a few very simple functions. This file will document all your resources here.
 
-To correctly use this library, it is also interesting to note what it is and what it is not. TinyComponents **is** an library to help rendering XML/HTML with an fluent and elegant syntax, which also support basic templating and components, but **it's not** an complete frontend framework with styles and scripts.
+To correctly use this library, it is also interesting to note what it is and what it is not. TinyComponents **is** an library to help rendering XML/HTML with an fluent and functional syntax, which also support basic templating and components, but **it's not** an complete frontend framework with styles and scripts.
 
 ## Installing
 
-Install the **experimental version** of TinyComponents with at [Nuget](https://www.nuget.org/packages/TinyComponents/0.2.0):
+Install the **experimental version** of TinyComponents with at [Nuget](https://www.nuget.org/packages/TinyComponents):
 
 ```
 dotnet add package TinyComponents
 ```
 
-## The IRenderable
+## Creating components
 
-Every renderable element inherits from `IRenderable`, which calls the render method and creates a string. This interface is not limited to HTML elements.
+All components are rendered through `ToString()` present in each object. Any object can be rendered inside an HtmlElement or XmlNode. There are three primitive types for creating objects:
 
-```csharp
-class MyRenderable(string Name) : IRenderable
-{
-    public string Render()
-    {
-        return $"Hello, {Name}";
-    }
-}
+- `TinyComponents.HtmlElement`
+- `TinyComponents.XmlNode`
+- `TinyComponents.RenderableText`
 
-string? hello = new MyRenderable("world").Render();
-Console.WriteLine(hello);
-// Hello, world
-```
+HtmlElement and XmlNode have very similar renderers, with the difference that:
 
-The `HtmlElement` class already implements this interface and has methods that will help you build your objects. You can create reusable elements, better known as "components". There are several functions to do this. Initially we will address the primitive capabilities of an HtmlElement.
+- `HtmlElement` has the `Id`, `Name`, `TabIndex`, `Style`, `Title` and `ClassList` properties.
+- When rendering `HtmlElement` with `SelfClosed = true`, XML is terminated with `/>` while HTML `>`.
+
+### Example 1:
 
 ```csharp
-var myDiv = new HtmlElement("div")
-    .WithClass("form-control", "bg-primary")
-    .WithId("my-button")
-    .WithAttribute("onclick", "foo()")
-    .WithName("submit-button")
-    .WithContent("Click me!");
+var ul = new HtmlElement("ul");
+ul.Style = new { backgroundColor = "red" };
+ul.Id = "fruit-list";
 
-Console.WriteLine(myDiv.Render());
+ul.Children.Add(new HtmlElement("li", "Apple"));
+ul.Children.Add(new HtmlElement("li", "Mango"));
+ul.Children.Add(new HtmlElement("li", "Blueberry"));
+
+Console.WriteLine(ul.ToString());
 ```
 
-Shoud output:
+Renders to:
 
 ```html
-<div onclick="foo()"
-    id="my-button"
-    name="submit-button"
-    class="form-control bg-primary">
-
-    Click me!
-</div>
+<ul id="fruit-list" style="background-color:red;">
+    <li>Apple</li>
+    <li>Mango</li>
+    <li>Blueberry</li>
+</ul>
 ```
 
-> **Note:**
->
-> The rendered HTML is always minified, but to improve our examples we will make them more readable and formatted.
-
-Explanation of some of the used fluent methods:
-
-- `WithClass` specifies one or more class to add to the HTML element.
-- `WithId` specifies the HTML element id attribute.
-- `WithAttribute` specifies one attribute and their value. If the attribute value is an boolean, it will add as `name="name"` when the value is `true`, but if the value is `false` or `null`, it will not add the attribute value.
-- `WithAttributes` specifies an anonymous object which will cast every property name casing from `camelCase` to `kebab-case`.
-- `WithName` specifies the HTML element name attribute.
-- `WithContent` expects one of these arguments: an string, an `IRenderable` object or an action of self tag, example:
+### Example 2:
 
 ```csharp
-var myDiv = new HtmlElement("div")
-    .WithContent(div =>
-    {
-        div += new HtmlElement("span")
-            .WithContent("hello");
-        div += new HtmlElement("dd")
-            .WithContent("world");
-    });
-```
-
-Which renders to:
-
-```html
-<div>
-    <span>
-        hello
-    </span>
-    <dd>
-        world
-    </dd>
-</div>
-```
-
-## Creating renderables elements
-
-Every way of rendering an `IRenderable` is valid, however, these are the most common:
-
-### Creating an functional component
-
-```csharp
-static IRenderable HelloDiv(string name)
+public class Li : HtmlElement
 {
-    return new HtmlElement("div")
-        .WithClass("my-class")
-        .WithContent($"Hello, {name}!");
-}
-
-var baseHtml = new HtmlElement("html")
-    .WithContent(html =>
+    public Li(string content) : base("li", content)
     {
-        html += HelloDiv("world");
-    });
-
-Console.WriteLine(baseHtml.Render());
-// <html><div class="my-class">Hello, world!</div></html>
-```
-
-### Creating an class which implements HtmlElement
-
-```csharp
-class MyComponent : HtmlElement
-{
-    public MyComponent() : base("main")
-    {
-        WithContent(main =>
-        {
-            main += new HtmlElement("button")
-                .WithContent("click me");
-        });
     }
 }
 
-var component = new MyComponent();
-Console.WriteLine(component.Render());
-// <main><button>click me</button></main>
-```
+var ul = new HtmlElement("ul");
+ul.Style = new { backgroundColor = "red" };
+ul.Id = "fruit-list";
 
-### Rendering an entire HTML page
+ul.Children.Add(new Li("Apple"));
+ul.Children.Add(new Li("Mango"));
+ul.Children.Add(new Li("Blueberry"));
 
-```csharp
-class HtmlPage : HtmlElement
-{
-    public string Lang { get; set; } = "en";
-    public string DocumentTitle { get; set; }
-    public HtmlElement Body { get; set; } = new HtmlElement();
-
-    public HtmlPage(string title) : base("html")
-    {
-        DocumentTitle = title;
-    }
-
-    public HtmlPage WithBody(Action<HtmlElement> handler)
-    {
-        handler(Body);
-        return this;
-    }
-
-    public override string? Render()
-    {
-        WithAttribute("lang", Lang);
-        WithContent(html =>
-        {
-            html += new HtmlElement("head", head =>
-            {
-                head += new HtmlElement("meta")
-                    .WithAttribute("charset", "UTF-8")
-                    .SelfClosed();
-                head += new HtmlElement("meta")
-                    .WithAttributes(new { name = "viewport", content = "width=device-width, initial-scale=1.0" })
-                    .SelfClosed();
-                head += new HtmlElement("title", DocumentTitle);
-            });
-            html += new HtmlElement("body", Body);
-        });
-        return base.Render();
-    }
-}
-
-HtmlPage page = new HtmlPage("Document")
-    .WithBody(body =>
-    {
-        body += new HtmlElement("p")
-            .WithContent("Hello, world!");
-    });
-
-Console.WriteLine(page.Render());
+Console.WriteLine(ul.ToString());
 ```
 
 ```html
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
-    </head>
-
-    <body>
-        <p>Hello, world!</p>
-    </body>
-</html>
+<ul id="fruit-list" style="background-color:red;">
+    <li>Apple</li>
+    <li>Mango</li>
+    <li>Blueberry</li>
+</ul>
 ```
 
-### Reusing an page template using abstracts
+### Example 3:
 
 ```csharp
-abstract class MyHtmlTemplate : HtmlElement
+var form = new HtmlElement("form")
+    .WithAttribute("method", "POST")
+    .WithAttribute("action", "/contact.php")
+    .WithContent(form =>
+    {
+        form += new HtmlElement("input")
+            .SelfClosed()
+            .WithName("name")
+            .WithAttribute("type", "text")
+            .WithAttribute("required")
+            .WithAttribute("placeholder", "Your name");
+
+        form += new HtmlElement("input")
+            .SelfClosed()
+            .WithName("message")
+            .WithAttribute("type", "text")
+            .WithAttribute("required")
+            .WithAttribute("placeholder", "Message");
+
+        form += new HtmlElement("button")
+            .WithContent("Send message")
+            .WithAttribute("type", "submit");
+    });
+
+Console.WriteLine(form);
+```
+
+```html
+<form method="POST" action="/contact.php">
+    <input type="text" required placeholder="Your name" name="name">
+    <input type="text" required placeholder="Message" name="message">
+    <button type="submit">
+        Send message
+    </button>
+</form>
+```
+
+### Example 4:
+
+```csharp
+var name = "<John>";
+var formattableText = HtmlElement.Format($"""
+    <h1>Hello, {name}!</h1>
+    """);
+
+Console.WriteLine(formattableText);
+```
+
+```html
+<h1>Hello, &lt;John&gt;!</h1>
+```
+
+### Example 5:
+
+```csharp
+class BlueButton : HtmlElement
 {
-    public abstract string DocumentTitle { get; set; }
-    public abstract IRenderable RenderBody();
-
-    public MyHtmlTemplate() : base("html")
+    public BlueButton(string text)
     {
-    }
-
-    public override string? Render()
-    {
-        // the following syntax use predefined static methods
-        // which aims to build predefined html elements.
-        WithContent(html =>
+        TagName = "button";
+        Style = new
         {
-            html += Head(head =>
-            {
-                head += Title(DocumentTitle);
-            });
-            html += Body(body =>
-            {
-                body += RenderBody();
-            });
-        });
-        return base.Render();
+            backgroundColor = "blue",
+            color = "white",
+            border = "1px solid darkblue"
+        };
+        Children = [new RenderableText(text)];
     }
 }
 
-class PageUsingTemplate : MyHtmlTemplate
+var button = new BlueButton("Click me!");
+Console.WriteLine(button);
+```
+
+```html
+<button style="background-color:blue;color:white;border:1px solid darkblue;">Click me!</button>
+```
+
+### Example 6:
+
+```csharp
+static HtmlElement Html() => new HtmlElement("html");
+static HtmlElement Body() => new HtmlElement("body");
+static HtmlElement Ul() => new HtmlElement("ul");
+static HtmlElement Li(string text) => new HtmlElement("li", text);
+static HtmlElement H1(string text) => new HtmlElement("h1", text);
+
+static void Main(string[] args)
 {
-    public override string DocumentTitle { get; set; } = "My super page";
+    string[] colors = ["Red", "Blue", "Yellow"];
 
-    public override IRenderable RenderBody()
-    {
-        return Fragment(_ =>
+    var page = Html().WithContent(html =>
         {
-            _ += HtmlElement.Paragraph("Hello from the extending template!");
-        });
-    }
-}
+            html += Body().WithContent(body =>
+            {
+                body += H1("List of colors:");
 
-var myPage = new PageUsingTemplate();
-Console.WriteLine(myPage.Render());
+                var colorList = Ul();
+                foreach (string color in colors)
+                    colorList += Li(color);
+
+                body += colorList;
+            });
+        });
+
+    Console.WriteLine(page);
+}
 ```
 
 ```html
 <html>
-    <head>
-        <title>My super page</title>
-    </head>
-
     <body>
-        <p>Hello from the extending template!</p>
+        <h1>List of colors:</h1>
+        <ul>
+            <li>Red</li>
+            <li>Blue</li>
+            <li>Yellow</li>
+        </ul>
     </body>
 </html>
 ```

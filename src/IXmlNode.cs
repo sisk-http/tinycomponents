@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace TinyComponents
 {
     /// <summary>
     /// Represents an renderable XML node.
     /// </summary>
-    public interface IXmlNode : IRenderable
+    public interface IXmlNode
     {
         /// <summary>
         /// Gets or sets the tag name of the XML node.
@@ -25,9 +23,9 @@ namespace TinyComponents
         public Dictionary<string, object?> Attributes { get; set; }
 
         /// <summary>
-        /// Gets or sets the collection of child elements (<see cref="IRenderable"/>) within this node.
+        /// Gets or sets the collection of child elements (<see cref="object"/>) within this node.
         /// </summary>
-        public ICollection<IRenderable> Children { get; set; }
+        public ICollection<object?> Children { get; set; }
 
     }
 }

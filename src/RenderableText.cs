@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Text;
-using System.Web;
 
 namespace TinyComponents
 {
     /// <summary>
     /// Represents an simple renderable text.
     /// </summary>
-    public class RenderableText : IRenderable
+    public class RenderableText
     {
         /// <summary>
         /// Gets or stets whether this text should be XML/HTML encoded or not.
@@ -53,11 +52,11 @@ namespace TinyComponents
         /// Renders this <see cref="RenderableText"/> into an string.
         /// </summary>
         /// <returns>The string representation of this <see cref="RenderableText"/>.</returns>
-        public String Render()
+        public override string ToString()
         {
             if (Escape)
             {
-                return EscapeXmlLikeLiteral(Contents?.ToString());
+                return SafeRenderSubject(Contents?.ToString());
             }
             else
             {
@@ -66,41 +65,61 @@ namespace TinyComponents
         }
 
         /// <summary>
-        /// Escapes the specified XML compatible value.
+        /// Renders the specified object into an safe HTML content.
         /// </summary>
-        /// <param name="literal">The XML or HTML value.</param>
-        public static string EscapeXmlLikeLiteral(string? literal)
+        /// <param name="obj">The object to be rendered.</param>
+        public static string SafeRenderSubject(object? obj)
         {
-            if (literal is null) return "";
-            StringBuilder sb = new StringBuilder(literal.Length);
-            ReadOnlySpan<char> rs = literal.ToCharArray();
-            for (int i = 0; i < rs.Length; i++)
+            if (obj is null)
             {
-                char c = rs[i];
-                switch (c)
-                {
-                    case '"':
-                        sb.Append("&quot;");
-                        break;
-                    case '\'':
-                        sb.Append("&apos;");
-                        break;
-                    case '<':
-                        sb.Append("&lt;");
-                        break;
-                    case '>':
-                        sb.Append("&gt;");
-                        break;
-                    case '&':
-                        sb.Append("&amp;");
-                        break;
-                    default:
-                        sb.Append(c);
-                        break;
-                }
+                return string.Empty;
             }
-            return sb.ToString();
+            else if (obj is RenderableText rt)
+            {
+                return rt.ToString();
+            }
+            else
+            {
+                string? literal = obj.ToString();
+
+                if (literal is null)
+                    return string.Empty;
+
+                StringBuilder sb = new StringBuilder(literal.Length);
+                ReadOnlySpan<char> rs = literal.ToCharArray();
+
+                for (int i = 0; i < rs.Length; i++)
+                {
+                    char c = rs[i];
+                    switch (c)
+                    {
+                        case '"':
+                            sb.Append("&quot;");
+                            break;
+
+                        case '\'':
+                            sb.Append("&apos;");
+                            break;
+
+                        case '<':
+                            sb.Append("&lt;");
+                            break;
+
+                        case '>':
+                            sb.Append("&gt;");
+                            break;
+
+                        case '&':
+                            sb.Append("&amp;");
+                            break;
+
+                        default:
+                            sb.Append(c);
+                            break;
+                    }
+                }
+                return sb.ToString();
+            }           
         }
     }
-
 }

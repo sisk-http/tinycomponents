@@ -58,8 +58,7 @@ namespace TinyComponents
         /// <returns>The self <see cref="HtmlElement"/> object for fluent chaining.</returns>
         public static THtmlElement WithStyle<THtmlElement>(this THtmlElement node, object styleObject) where THtmlElement : HtmlElement
         {
-            
-
+            node.Style = styleObject;
             return node;
         }
     }

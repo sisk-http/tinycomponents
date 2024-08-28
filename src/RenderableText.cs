@@ -119,7 +119,7 @@ namespace TinyComponents
                     }
                 }
                 return sb.ToString();
-            }           
+            }
         }
     }
 }

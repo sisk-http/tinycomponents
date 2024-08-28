@@ -1,8 +1,4 @@
-﻿using System.Linq;
-using System.Reflection;
-using System.Text;
-
-namespace TinyComponents
+﻿namespace TinyComponents
 {
     /// <summary>
     /// Provides extension methods for <see cref="HtmlElement"/> objects.

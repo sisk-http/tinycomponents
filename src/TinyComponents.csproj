@@ -5,6 +5,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>disable</ImplicitUsings>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>symbols.nupkg</SymbolPackageFormat>
 
 		<!-- package info -->
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -27,6 +29,7 @@
 		<Version>0.4.0.0</Version>
 
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
 		<SignAssembly>False</SignAssembly>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<PackRelease>True</PackRelease>

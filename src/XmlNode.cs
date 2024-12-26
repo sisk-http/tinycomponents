@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace TinyComponents
-{
+namespace TinyComponents {
     /// <summary>
     /// Represents an renderable XML node.
     /// </summary>
-    public class XmlNode : IXmlNode
-    {
+    public class XmlNode : IXmlNode {
         /// <summary>
         /// Gets or sets the tag name of the XML node.
         /// </summary>
@@ -22,20 +20,19 @@ namespace TinyComponents
         /// <summary>
         /// Gets or sets the collection of attributes for this node.
         /// </summary>
-        public Dictionary<string, object?> Attributes { get; set; } = new Dictionary<string, object?>();
+        public NodeAttributeCollection Attributes { get; set; } = new NodeAttributeCollection ();
 
         /// <summary>
         /// Gets or sets the collection of child elements within this node.
         /// </summary>
-        public ICollection<object?> Children { get; set; } = new List<object?>();
+        public ICollection<object?> Children { get; set; } = new List<object?> ();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="XmlNode"/> class with the specified tag name.
         /// </summary>
         /// <param name="tagName">The name of the tag to be used for the XML element. The tag name will be converted to lowercase.</param>
-        public XmlNode(string tagName)
-        {
-            TagName = tagName;
+        public XmlNode ( string tagName ) {
+            this.TagName = tagName;
         }
 
         /// <summary>
@@ -43,10 +40,9 @@ namespace TinyComponents
         /// </summary>
         /// <param name="tagName">The name of the tag to be used for the XML element. The tag name will be converted to lowercase.</param>
         /// <param name="content">Optional parameter that defines content for the creating XML tag.</param>
-        public XmlNode(string tagName, object? content)
-        {
-            TagName = tagName;
-            this.WithContent(content);
+        public XmlNode ( string tagName, object? content ) {
+            this.TagName = tagName;
+            this.WithContent ( content );
         }
 
         /// <summary>
@@ -54,10 +50,9 @@ namespace TinyComponents
         /// </summary>
         /// <param name="tagName">The name of the tag to be used for the XML element. The tag name will be converted to lowercase.</param>
         /// <param name="content">Optional parameter that defines content for the creating XML tag.</param>
-        public XmlNode(string tagName, string content)
-        {
-            TagName = tagName;
-            this.WithContent(content);
+        public XmlNode ( string tagName, string content ) {
+            this.TagName = tagName;
+            this.WithContent ( content );
         }
 
         /// <summary>
@@ -65,88 +60,80 @@ namespace TinyComponents
         /// </summary>
         /// <param name="tagName">The name of the tag to be used for the XML element. The tag name will be converted to lowercase.</param>
         /// <param name="content">Optional parameter that defines content for the creating XML tag.</param>
-        public XmlNode(string tagName, Action<XmlNode> content)
-        {
-            TagName = tagName;
-            this.WithContent(content);
+        public XmlNode ( string tagName, Action<XmlNode> content ) {
+            this.TagName = tagName;
+            this.WithContent ( content );
         }
 
         /// <inheritdoc/>
-        public static XmlNode operator +(XmlNode a, XmlNode? b)
-        {
-            if (b == null) return a;
-            a.Children.Add(b);
+        public static XmlNode operator + ( XmlNode a, XmlNode? b ) {
+            if (b == null)
+                return a;
+            a.Children.Add ( b );
             return a;
         }
 
         /// <inheritdoc/>
-        public static XmlNode operator +(XmlNode a, object? b)
-        {
-            if (b == null) return a;
-            a.Children.Add(b);
+        public static XmlNode operator + ( XmlNode a, object? b ) {
+            if (b == null)
+                return a;
+            a.Children.Add ( b );
             return a;
         }
 
         /// <inheritdoc/>
-        public static XmlNode operator +(XmlNode a, string? b)
-        {
-            if (b == null) return a;
-            a.Children.Add(new RenderableText(b));
+        public static XmlNode operator + ( XmlNode a, string? b ) {
+            if (b == null)
+                return a;
+            a.Children.Add ( new RenderableText ( b ) );
             return a;
         }
 
         /// <summary>
         /// Renders this <see cref="XmlNode"/> into it's XML string representation.
         /// </summary>
-        public override string ToString()
-        {
-            StringBuilder sb = new StringBuilder();
+        public override string ToString () {
+            StringBuilder sb = new StringBuilder ();
 
-            if (!string.IsNullOrEmpty(TagName))
-            {
-                sb.Append('<');
-                sb.Append(TagName);
+            if (!string.IsNullOrEmpty ( this.TagName )) {
+                sb.Append ( '<' );
+                sb.Append ( this.TagName );
 
-                if (Attributes.Count > 0)
-                {
-                    foreach (KeyValuePair<string, object?> at in Attributes)
-                    {
-                        if (string.IsNullOrEmpty(at.Key))
+                if (this.Attributes.Count > 0) {
+                    foreach (KeyValuePair<string, object?> at in this.Attributes) {
+                        if (string.IsNullOrEmpty ( at.Key ))
                             continue;
 
-                        sb.Append(' ');
-                        sb.Append(at.Key);
+                        sb.Append ( ' ' );
+                        sb.Append ( at.Key );
 
-                        string value = RenderableText.SafeRenderSubject(at.Value);
-                        sb.Append('=');
-                        sb.Append('"');
-                        sb.Append(value);
-                        sb.Append('"');
+                        string value = RenderableText.SafeRenderSubject ( at.Value );
+                        sb.Append ( '=' );
+                        sb.Append ( '"' );
+                        sb.Append ( value );
+                        sb.Append ( '"' );
                     }
                 }
 
-                if (SelfClosing)
-                {
-                    sb.Append('/');
+                if (this.SelfClosing) {
+                    sb.Append ( '/' );
                 }
-                sb.Append('>');
+                sb.Append ( '>' );
             }
 
-            if (SelfClosing)
-            {
-                return sb.ToString();
+            if (this.SelfClosing) {
+                return sb.ToString ();
             }
 
-            foreach (object? children in Children)
-            {
-                sb.Append(children?.ToString());
+            foreach (object? children in this.Children) {
+                sb.Append ( children?.ToString () );
             }
 
-            sb.Append("</");
-            sb.Append(TagName);
-            sb.Append('>');
+            sb.Append ( "</" );
+            sb.Append ( this.TagName );
+            sb.Append ( '>' );
 
-            return sb.ToString();
+            return sb.ToString ();
         }
     }
 }

@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
 
-namespace TinyComponents
-{
+namespace TinyComponents {
     /// <summary>
     /// Represents an renderable XML node.
     /// </summary>
-    public interface IXmlNode
-    {
+    public interface IXmlNode {
         /// <summary>
         /// Gets or sets the tag name of the XML node.
         /// </summary>
@@ -20,7 +18,7 @@ namespace TinyComponents
         /// <summary>
         /// Gets or sets an collection of attributes for this node.
         /// </summary>
-        public Dictionary<string, object?> Attributes { get; set; }
+        public NodeAttributeCollection Attributes { get; set; }
 
         /// <summary>
         /// Gets or sets the collection of child elements (<see cref="object"/>) within this node.

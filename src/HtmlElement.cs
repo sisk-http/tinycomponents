@@ -10,7 +10,7 @@ namespace TinyComponents {
     /// <summary>
     /// Represents an HTML element for rendering
     /// </summary>
-    public class HtmlElement : IXmlNode {
+    public class HtmlElement : INode {
         /// <summary>
         /// Formats the specified HTML string format, escaping the string interpolation pieces.
         /// </summary>
@@ -21,6 +21,25 @@ namespace TinyComponents {
                 formattedData [ i ] = RenderableText.SafeRenderSubject ( htmlString.GetArgument ( i )?.ToString () );
             }
             return string.Format ( htmlString.Format, formattedData );
+        }
+
+        /// <summary>
+        /// Creates an fragment <see cref="HtmlElement"/> with specified children.
+        /// </summary>
+        /// <param name="children">An array of objects to put as children of the creating fragment.</param>
+        public static HtmlElement Fragment ( params object? [] children ) {
+            return new HtmlElement ( "", fragment => {
+                foreach (object? child in children)
+                    fragment.Children.Add ( child );
+            } );
+        }
+
+        /// <summary>
+        /// Creates an fragment <see cref="HtmlElement"/> with specified self-action.
+        /// </summary>
+        /// <param name="action">An action that defines content for the creating HTML element.</param>
+        public static HtmlElement Fragment ( Action<HtmlElement> action ) {
+            return new HtmlElement ( "", action );
         }
 
         /// <summary>

@@ -2,9 +2,9 @@
 
 namespace TinyComponents {
     /// <summary>
-    /// Represents an renderable XML node.
+    /// Represents an renderable node.
     /// </summary>
-    public interface IXmlNode {
+    public interface INode {
         /// <summary>
         /// Gets or sets the tag name of the XML node.
         /// </summary>

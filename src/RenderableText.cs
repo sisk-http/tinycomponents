@@ -105,6 +105,7 @@ namespace TinyComponents {
                             break;
                     }
                 }
+
                 return sb.ToString ();
             }
         }

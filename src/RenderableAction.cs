@@ -6,6 +6,7 @@ namespace TinyComponents {
     /// function.
     /// </summary>
     public sealed class RenderableFunction {
+
         /// <summary>
         /// Gets or sets the renderable function.
         /// </summary>

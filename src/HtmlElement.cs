@@ -5,12 +5,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace TinyComponents {
     /// <summary>
     /// Represents an HTML element for rendering
     /// </summary>
     public class HtmlElement : INode {
+
+        static Regex EmmetTagPattern = new Regex ( @"^([a-zA-Z][\w-]*)", RegexOptions.Compiled );
+        static Regex EmmetIdPattern = new Regex ( @"#([\w-]+)", RegexOptions.Compiled );
+        static Regex EmmetClassPattern = new Regex ( @"\.([\w-]+)", RegexOptions.Compiled );
+        static Regex EmmetAttrPattern = new Regex ( @"\[([^\]=]+)(?:=([^\]]+))?\]", RegexOptions.Compiled );
+
         /// <summary>
         /// Formats the specified HTML string format, escaping the string interpolation pieces.
         /// </summary>
@@ -32,6 +39,60 @@ namespace TinyComponents {
                 foreach (object? child in children)
                     fragment.Children.Add ( child );
             } );
+        }
+
+        /// <summary>
+        /// Creates an <see cref="HtmlElement"/> from the specified emmet template.
+        /// </summary>
+        /// <param name="emmetString"></param>
+        /// <returns></returns>
+        public static HtmlElement FromEmmet ( string emmetString ) {
+            var result = new HtmlElement ( "div" );
+
+            var tagMatch = EmmetTagPattern.Match ( emmetString );
+            if (tagMatch.Success) {
+                result.TagName = tagMatch.Groups [ 1 ].Value;
+            }
+
+            var idMatch = EmmetIdPattern.Match ( emmetString );
+            if (idMatch.Success) {
+                result.Id = idMatch.Groups [ 1 ].Value;
+            }
+
+            foreach (Match classMatch in EmmetClassPattern.Matches ( emmetString )) {
+                result.ClassList.Add ( classMatch.Groups [ 1 ].ToString () );
+            }
+
+            foreach (Match attrMatch in EmmetAttrPattern.Matches ( emmetString )) {
+                string key = attrMatch.Groups [ 1 ].Value.Trim ();
+                string value = attrMatch.Groups [ 2 ].Value.Trim ();
+                if (value == string.Empty) {
+                    value = key;
+                }
+                result.Attributes [ key ] = value;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Creates an <see cref="HtmlElement"/> from the specified emmet template and adds the specified children.
+        /// </summary>
+        /// <param name="emmetString">The emmet template string.</param>
+        /// <param name="children">An array of objects to put as children of the creating element.</param>
+        /// <returns>A new <see cref="HtmlElement"/> based on the emmet template with the specified children.</returns>
+        public static HtmlElement FromEmmet ( string emmetString, params object? [] children ) {
+            return FromEmmet ( emmetString ).WithContent ( children );
+        }
+
+        /// <summary>
+        /// Creates an <see cref="HtmlElement"/> from the specified emmet template and configures it using the specified action.
+        /// </summary>
+        /// <param name="emmetString">The emmet template string.</param>
+        /// <param name="self">An action to configure the created <see cref="HtmlElement"/>.</param>
+        /// <returns>A new <see cref="HtmlElement"/> based on the emmet template and configured using the specified action.</returns>
+        public static HtmlElement FromEmmet ( string emmetString, Action<HtmlElement> self ) {
+            return FromEmmet ( emmetString ).WithContent ( self );
         }
 
         /// <summary>
@@ -173,7 +234,7 @@ namespace TinyComponents {
         }
 
         /// <summary>
-        /// Renders the HTML element into string.
+        /// Renders the HTML element into a string with optional pretty formatting.
         /// </summary>
         /// <returns>The rendered HTML string.</returns>
         public override string ToString () {
